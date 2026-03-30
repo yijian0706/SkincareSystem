@@ -1,9 +1,11 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from '@tailwindcss/vite' // 确保这一行存在
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  // 必须和 GitHub 的仓库名完全一致，注意前后的斜杠
-  base: '/SkincareSystem/', 
+  plugins: [
+    react(),
+    tailwindcss(), // 确保这一行也存在
+  ],
+  base: '/SkincareSystem/', // 必须和你的仓库名一致
 })
