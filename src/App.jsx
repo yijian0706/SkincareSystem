@@ -654,7 +654,8 @@ const LandingPage = () => {
 // --- MAIN APP COMPONENT WITH ROUTING ---
 function App() {
   return (
-    <Router>
+    // 添加 basename 属性，确保路由能识别 GitHub Pages 的子路径
+    <Router basename="/SkincareSystem">
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<Register />} />
