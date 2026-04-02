@@ -10,32 +10,32 @@ const Register = () => {
     password: ''
   });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('http://localhost:8082/api/skincare/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+  // --- In your Register.js / Frontend ---
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const response = await fetch('http://localhost:8082/api/skincare/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (data.status === "Success") {
-        // 注册成功自动保存状态并跳回首页
-        localStorage.setItem('user', JSON.stringify({ username: formData.username, address: formData.address }));
-        alert("Registration successful! Welcome to your skincare ritual.✨");
-        navigate('/'); 
-      } else {
-        alert("Registration failed: " + data.message);
-      }
-    } catch (error) {
-      console.error("Network error:", error);
-      alert("Unable to connect to the server. Please check if the Node.js backend is running.");
+    if (data.status === "Success") {
+      // FIX: Save the actual user object returned from the backend (including ID)
+      localStorage.setItem('user', JSON.stringify(data.user)); 
+      
+      alert("Registration successful! Welcome to your skincare ritual.✨");
+      navigate('/'); 
+    } else {
+      alert("Registration failed: " + data.message);
     }
-  };
+  } catch (error) {
+    console.error("Network error:", error);
+    alert("Unable to connect to the server.");
+  }
+};
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-6 selection:bg-[#c5a059] selection:text-black font-sans">
