@@ -275,7 +275,7 @@ const LandingPage = () => {
             </div>
             <div className="relative flex justify-center lg:justify-end">
               <div className="relative w-full max-w-md aspect-[4/5] overflow-hidden rounded-sm shadow-2xl">
-                <img src="112.png" alt="Radiance Serum" className="w-full h-full object-cover" />
+                <img src="/SkincareSystem/112.png" alt="Radiance Serum" className="w-full h-full object-cover" />
                 <div className="absolute top-10 -right-4 bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-800 p-4 rounded-lg text-center">
                   <div className="text-[9px] uppercase tracking-widest text-gray-500 mb-1">Starting At</div>
                   <div className="text-2xl font-serif text-[#c5a059]">$148</div>
@@ -337,7 +337,7 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="relative flex justify-center">
             <div className="relative z-10 w-full max-w-sm overflow-hidden rounded-sm">
-              <img src="112.png" alt="Signature Serum" className="w-full h-full object-cover" />
+              <img src="/SkincareSystem/112.png" alt="Signature Serum" className="w-full h-full object-cover" />
             </div>
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-orange-500/10 blur-[120px] rounded-full" />
           </div>
@@ -386,7 +386,7 @@ const LandingPage = () => {
                
                {/* 瓶子图片：稍微伸出盒子左侧 */}
                <div className="absolute -left-12 top-1/2 -translate-y-1/2 w-48 h-55 drop-shadow-2xl hover:scale-105 transition-transform duration-500">
-                  <img src="112.png" alt="Packaging Preview" className="w-full h-full object-cover" />
+                  <img src="/SkincareSystem/112.png" alt="Packaging Preview" className="w-full h-full object-cover" />
                </div>
             </div>
             
