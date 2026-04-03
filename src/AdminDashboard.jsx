@@ -14,6 +14,7 @@ const AdminDashboard = () => {
   // 弹窗状态
   const [editingUser, setEditingUser] = useState(null);
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
   const [newProduct, setNewProduct] = useState({
     name: '', price: '', category: '', image_url: '', stock: 0
   });
@@ -79,6 +80,19 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUpdateProduct = async (e) => {
+    e.preventDefault();
+    const res = await fetch(`http://localhost:8082/api/admin/products/${editingProduct.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editingProduct),
+    });
+    if ((await res.json()).status === "Success") {
+      setEditingProduct(null);
+      fetchData();
+    }
+  };
+
   const toggleProduct = (id) => {
     fetch(`http://localhost:8082/api/admin/products/${id}/toggle`, { method: 'PUT' })
       .then(() => fetchData());
@@ -116,7 +130,7 @@ const AdminDashboard = () => {
           ))}
         </nav>
 
-        <button onClick={() => window.location.href='/'} className="flex items-center gap-3 text-gray-600 text-[10px] uppercase tracking-widest hover:text-red-400 mt-auto pt-8 border-t border-white/5">
+        <button onClick={() => window.location.href='/SkincareSystem/'} className="flex items-center gap-3 text-gray-600 text-[10px] uppercase tracking-widest hover:text-red-400 mt-auto pt-8 border-t border-white/5">
           <LogOut size={14} /> Exit System
         </button>
       </div>
@@ -205,12 +219,7 @@ const AdminDashboard = () => {
         {/* --- VIEW: INVENTORY --- */}
         {view === 'inventory' && (
           <div className="animate-fadeIn">
-            <div className="flex justify-between items-center mb-8">
-              <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400">Atelier Stock Control</p>
-              <button onClick={() => setIsAddProductOpen(true)} className="bg-[#1a1510] text-white px-8 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-[#c5a059] flex items-center gap-2 transition-all shadow-xl">
-                <Plus size={14}/> Add New Item
-              </button>
-            </div>
+            {/* ... Add New Item 按钮 ... */}
             <div className="bg-white rounded-3xl shadow-sm overflow-hidden border border-gray-100">
               <table className="w-full text-left">
                 <thead className="bg-gray-50/50 text-[9px] uppercase tracking-[0.2em] text-gray-400">
@@ -230,8 +239,12 @@ const AdminDashboard = () => {
                           <Power size={8}/> {prod.is_active ? 'Active' : 'Offline'}
                         </button>
                       </td>
-                      <td className="p-4">
-                        <button onClick={() => deleteProduct(prod.id)} className="text-gray-300 hover:text-red-500 transition px-2">
+                      <td className="p-4 flex items-center gap-2">
+                        {/* 修改：增加编辑按钮 */}
+                        <button onClick={() => setEditingProduct(prod)} className="text-[#c5a059] hover:text-black transition p-2">
+                          <Edit3 size={16}/>
+                        </button>
+                        <button onClick={() => deleteProduct(prod.id)} className="text-gray-300 hover:text-red-500 transition p-2">
                           <Trash2 size={16}/>
                         </button>
                       </td>
@@ -242,57 +255,89 @@ const AdminDashboard = () => {
             </div>
           </div>
         )}
+        {editingProduct && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md bg-black/20">
+          <form onSubmit={handleUpdateProduct} className="bg-white w-full max-w-lg rounded-[2.5rem] p-12 shadow-2xl animate-fadeInUp relative">
+            <button type="button" onClick={() => setEditingProduct(null)} className="absolute right-8 top-8 text-gray-400 hover:text-black transition"><X size={24}/></button>
+            <h2 className="text-3xl font-serif italic mb-8">Edit Ritual Product</h2>
+            <div className="space-y-5">
+              <div>
+                <label className="text-[9px] uppercase tracking-widest text-gray-400 mb-1 block">Product Name</label>
+                <input className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] text-sm font-medium" value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} required/>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-1/2">
+                  <label className="text-[9px] uppercase tracking-widest text-gray-400 mb-1 block">Price ($)</label>
+                  <input className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] text-sm font-medium" type="number" step="0.01" value={editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: e.target.value})} required/>
+                </div>
+                <div className="w-1/2">
+                  <label className="text-[9px] uppercase tracking-widest text-gray-400 mb-1 block">Stock Count</label>
+                  <input className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] text-sm font-medium" type="number" value={editingProduct.stock} onChange={e => setEditingProduct({...editingProduct, stock: e.target.value})} required/>
+                </div>
+              </div>
+              <div>
+                <label className="text-[9px] uppercase tracking-widest text-gray-400 mb-1 block">Image URL</label>
+                <input className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] text-sm font-medium" value={editingProduct.image_url} onChange={e => setEditingProduct({...editingProduct, image_url: e.target.value})} required/>
+              </div>
+              <div>
+                <label className="text-[9px] uppercase tracking-widest text-gray-400 mb-1 block">Category</label>
+                <input className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] text-sm font-medium" value={editingProduct.category} onChange={e => setEditingProduct({...editingProduct, category: e.target.value})}/>
+              </div>
+            </div>
+            <button type="submit" className="w-full bg-[#1a1510] text-white py-5 rounded-full text-[10px] font-bold uppercase tracking-widest mt-10 hover:bg-[#c5a059] transition-all shadow-lg">Save Changes</button>
+          </form>
+        </div>
+      )}
       </div>
 
       {/* --- MODAL: EDIT USER --- */}
-      {/* --- MODAL: EDIT USER --- */}
-{editingUser && (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md bg-black/20">
-    <form onSubmit={handleUpdateUser} className="bg-white w-full max-w-lg rounded-[2.5rem] p-10 shadow-2xl animate-fadeInUp relative overflow-y-auto max-h-[90vh]">
-      <button type="button" onClick={() => setEditingUser(null)} className="absolute right-8 top-8 text-gray-400 hover:text-black transition"><X size={24}/></button>
-      <h2 className="text-3xl font-serif italic mb-6">Modify Member Detail</h2>
-      
-      <div className="space-y-4">
-        {/* Username */}
-        <div className="group">
-          <label className="text-[9px] uppercase tracking-[0.2em] text-gray-400 block mb-1 px-1">Username</label>
-          <input className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] transition-all text-sm font-medium" value={editingUser.username || ''} onChange={e => setEditingUser({...editingUser, username: e.target.value})} required/>
-        </div>
+      {editingUser && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md bg-black/20">
+          <form onSubmit={handleUpdateUser} className="bg-white w-full max-w-lg rounded-[2.5rem] p-10 shadow-2xl animate-fadeInUp relative overflow-y-auto max-h-[90vh]">
+            <button type="button" onClick={() => setEditingUser(null)} className="absolute right-8 top-8 text-gray-400 hover:text-black transition"><X size={24}/></button>
+            <h2 className="text-3xl font-serif italic mb-6">Modify Member Detail</h2>
+            
+            <div className="space-y-4">
+              {/* Username */}
+              <div className="group">
+                <label className="text-[9px] uppercase tracking-[0.2em] text-gray-400 block mb-1 px-1">Username</label>
+                <input className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] transition-all text-sm font-medium" value={editingUser.username || ''} onChange={e => setEditingUser({...editingUser, username: e.target.value})} required/>
+              </div>
 
-        {/* Email */}
-        <div className="group">
-          <label className="text-[9px] uppercase tracking-[0.2em] text-gray-400 block mb-1 px-1">Email Address</label>
-          <input type="email" className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] transition-all text-sm font-medium" value={editingUser.email || ''} onChange={e => setEditingUser({...editingUser, email: e.target.value})} required/>
-        </div>
+              {/* Email */}
+              <div className="group">
+                <label className="text-[9px] uppercase tracking-[0.2em] text-gray-400 block mb-1 px-1">Email Address</label>
+                <input type="email" className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] transition-all text-sm font-medium" value={editingUser.email || ''} onChange={e => setEditingUser({...editingUser, email: e.target.value})} required/>
+              </div>
 
-        {/* Address */}
-        <div className="group">
-          <label className="text-[9px] uppercase tracking-[0.2em] text-gray-400 block mb-1 px-1">Shipping Address</label>
-          <textarea className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] transition-all text-sm font-medium resize-none h-16" value={editingUser.address || ''} onChange={e => setEditingUser({...editingUser, address: e.target.value})} />
-        </div>
+              {/* Address */}
+              <div className="group">
+                <label className="text-[9px] uppercase tracking-[0.2em] text-gray-400 block mb-1 px-1">Shipping Address</label>
+                <textarea className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] transition-all text-sm font-medium resize-none h-16" value={editingUser.address || ''} onChange={e => setEditingUser({...editingUser, address: e.target.value})} />
+              </div>
 
-        {/* New Password (Optional) */}
-        <div className="group">
-          <label className="text-[9px] uppercase tracking-[0.2em] text-[#c5a059] block mb-1 px-1 font-bold">Reset Password (Leave blank to keep current)</label>
-          <input type="password" placeholder="Enter new password" className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] transition-all text-sm font-medium" onChange={e => setEditingUser({...editingUser, newPassword: e.target.value})}/>
-        </div>
+              {/* New Password (Optional) */}
+              <div className="group">
+                <label className="text-[9px] uppercase tracking-[0.2em] text-[#c5a059] block mb-1 px-1 font-bold">Reset Password (Leave blank to keep current)</label>
+                <input type="password" placeholder="Enter new password" className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] transition-all text-sm font-medium" onChange={e => setEditingUser({...editingUser, newPassword: e.target.value})}/>
+              </div>
 
-        {/* Role */}
-        <div className="group">
-          <label className="text-[9px] uppercase tracking-[0.2em] text-gray-400 block mb-1 px-1">Permission Role</label>
-          <select className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] transition-all text-sm bg-transparent" value={editingUser.role || 'customer'} onChange={e => setEditingUser({...editingUser, role: e.target.value})}>
-            <option value="customer">Customer</option>
-            <option value="admin">Administrator</option>
-          </select>
-        </div>
-      </div>
+              {/* Role */}
+              <div className="group">
+                <label className="text-[9px] uppercase tracking-[0.2em] text-gray-400 block mb-1 px-1">Permission Role</label>
+                <select className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] transition-all text-sm bg-transparent" value={editingUser.role || 'customer'} onChange={e => setEditingUser({...editingUser, role: e.target.value})}>
+                  <option value="customer">Customer</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </div>
+            </div>
 
-      <button type="submit" className="w-full bg-[#1a1510] text-white py-4 rounded-full text-[10px] font-bold uppercase tracking-widest mt-8 hover:bg-[#c5a059] transition-all shadow-lg">
-        Update User Profile
-      </button>
-    </form>
-  </div>
-)}
+            <button type="submit" className="w-full bg-[#1a1510] text-white py-4 rounded-full text-[10px] font-bold uppercase tracking-widest mt-8 hover:bg-[#c5a059] transition-all shadow-lg">
+              Update User Profile
+            </button>
+          </form>
+        </div>
+      )}
 
       {/* --- MODAL: ADD PRODUCT --- */}
       {isAddProductOpen && (

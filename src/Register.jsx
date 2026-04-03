@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // 导入 Link
+import { useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast'; // 1. 导入 toast
 
 const Register = () => {
   const navigate = useNavigate();
@@ -10,32 +11,62 @@ const Register = () => {
     password: ''
   });
 
-  // --- In your Register.js / Frontend ---
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const response = await fetch('http://localhost:8082/api/skincare/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
-    });
+  // 定义仪式感 Toast 样式
+  const ritualToast = {
+    style: {
+      background: '#111',
+      color: '#c5a059',
+      border: '1px solid rgba(197, 160, 89, 0.3)',
+      fontSize: '12px',
+      textTransform: 'uppercase',
+      letterSpacing: '0.1em',
+      borderRadius: '12px',
+      padding: '16px',
+    },
+    iconTheme: {
+      primary: '#c5a059',
+      secondary: '#111',
+    },
+  };
 
-    const data = await response.json();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // 显示加载状态
+    const loadingToast = toast.loading("Creating your ritual account...", ritualToast);
 
-    if (data.status === "Success") {
-      // FIX: Save the actual user object returned from the backend (including ID)
-      localStorage.setItem('user', JSON.stringify(data.user)); 
-      
-      alert("Registration successful! Welcome to your skincare ritual.✨");
-      navigate('/'); 
-    } else {
-      alert("Registration failed: " + data.message);
+    try {
+      const response = await fetch('http://localhost:8082/api/skincare/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      toast.dismiss(loadingToast); // 关闭加载框
+
+      if (data.status === "Success") {
+        // 保存用户信息
+        localStorage.setItem('user', JSON.stringify(data.user)); 
+        
+        // 成功提示
+        toast.success(data.message + " ✨", ritualToast);
+        
+        // 延迟跳转，让用户看一眼提示
+        setTimeout(() => {
+          navigate('/'); 
+        }, 1500);
+      } else {
+        // 失败提示（使用后端返回的错误信息）
+        toast.error(data.message, ritualToast);
+      }
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      console.error("Network error:", error);
+      toast.error("Unable to connect to the LUMIÈRE server.", ritualToast);
     }
-  } catch (error) {
-    console.error("Network error:", error);
-    alert("Unable to connect to the server.");
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-6 selection:bg-[#c5a059] selection:text-black font-sans">
@@ -83,7 +114,6 @@ const handleSubmit = async (e) => {
           Sign Up Now
         </button>
 
-        {/* --- 修改后的底部链接部分 --- */}
         <div className="mt-8 text-center space-y-3">
           <p className="text-[11px] text-gray-600 uppercase tracking-widest">
             Already a member? <Link to="/login" className="text-[#c5a059] hover:text-white transition-colors">Login Here</Link>

@@ -8,6 +8,7 @@ import OrderSuccess from './OrderSuccess';
 import OrderHistory from './OrderHistory';
 import AdminDashboard from './AdminDashboard';
 import FormulaPage from './FormulaPage';
+import { Toaster } from 'react-hot-toast';
 
 // --- LANDING PAGE COMPONENT ---
 const LandingPage = () => {
@@ -46,9 +47,31 @@ const LandingPage = () => {
     // 1. 安全检查：必须登录
     const user = JSON.parse(localStorage.getItem('user'));
     
+    // 定义仪式感样式 (保持全站统一)
+    const ritualToast = {
+      style: {
+        background: '#111',
+        color: '#c5a059',
+        border: '1px solid rgba(197, 160, 89, 0.3)',
+        fontSize: '12px',
+        textTransform: 'uppercase',
+        letterSpacing: '0.1em',
+        borderRadius: '12px',
+        padding: '16px',
+      },
+      iconTheme: {
+        primary: '#c5a059',
+        secondary: '#111',
+      },
+    };
+
     if (!user) {
-      alert("Please log in to your account to begin your exclusive LUMIÈRE experience.✨");
-      navigate('/login');
+      toast.error("Please log in to your account to begin your exclusive LUMIÈRE experience. ✨", ritualToast);
+      
+      // 稍微延迟跳转，让用户看清楚 toast
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
       return;
     }
 
@@ -67,6 +90,9 @@ const LandingPage = () => {
     // 3. 同时更新 React 状态和 LocalStorage
     setCart(updatedCart);
     localStorage.setItem('cart', JSON.stringify(updatedCart)); 
+
+    // --- 可选：添加成功加入购物车的提示 ---
+    toast.success(`${product.name} added to your ritual.`, ritualToast);
 
     // 4. 打开购物车抽屉预览
     setIsCartOpen(true);
@@ -447,37 +473,69 @@ const LandingPage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.map((product) => (
-              <div key={product.id} className="group bg-white ...">
-                <div className="relative aspect-square ...">
-                  {/* 适配数据库字段名：image_url */}
-                  <img 
-                    src={product.image_url || product.img} 
-                    alt={product.name}
-                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700" 
-                  />
-                </div>
-                <div className="p-8 flex-grow">
-                  <span className="text-[9px] uppercase tracking-[0.2em] text-[#c5a059] block mb-2">
-                    {product.category}
-                  </span>
-                  <h3 className="text-xl font-serif mb-8 leading-snug">{product.name}</h3>
-                  <div className="flex items-center justify-between mt-auto">
-                    {/* 适配价格显示，如果库里存的是数字 148，这里手动加 $ */}
-                    <span className="text-xl font-serif">
-                      {product.price.toString().startsWith('$') ? product.price : `$${product.price}`}
+            {products.map((product) => {
+              // 判断是否售罄
+              const isOutOfStock = product.stock <= 0;
+
+              return (
+                <div key={product.id} className="group bg-white flex flex-col h-full relative">
+                  {/* 图片容器 */}
+                  <div className="relative aspect-square overflow-hidden bg-gray-50 flex items-center justify-center">
+                    <img 
+                      src={product.image_url || product.img} 
+                      alt={product.name}
+                      // --- 关键修改：售罄时增加 grayscale(灰度) 和 blur(模糊) ---
+                      className={`w-full h-full object-contain transition-transform duration-700 ${
+                        isOutOfStock ? 'blur-sm grayscale opacity-60' : 'group-hover:scale-110'
+                      }`} 
+                    />
+
+                    {/* --- 关键修改：右上角显示 Out of Stock 标签 --- */}
+                    {isOutOfStock && (
+                      <div className="absolute top-4 right-4 bg-black/80 text-[#c5a059] px-3 py-1 rounded-sm shadow-xl z-20">
+                        <span className="text-[9px] uppercase tracking-[0.2em] font-bold">
+                          Out of Stock
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 产品文字信息 */}
+                  <div className="p-8 flex-grow flex flex-col">
+                    <span className="text-[9px] uppercase tracking-[0.2em] text-[#c5a059] block mb-2">
+                      {product.category}
                     </span>
+                    <h3 className="text-xl font-serif mb-8 leading-snug">{product.name}</h3>
                     
-                    <button 
-                      onClick={() => addToCart(product)} 
-                      className="w-10 h-10 rounded-full bg-[#1a1510] text-white flex items-center justify-center hover:bg-[#c5a059] transition-all"
-                    >
-                      <Plus size={18} />
-                    </button>
+                    <div className="flex items-center justify-between mt-auto">
+                      <span className={`text-xl font-serif ${isOutOfStock ? 'text-gray-400' : ''}`}>
+                        {product.price.toString().startsWith('$') ? product.price : `$${product.price}`}
+                      </span>
+                      
+                      {/* --- 关键修改：如果售罄，禁用按钮并改变样式 --- */}
+                      <button 
+                        onClick={() => !isOutOfStock && addToCart(product)} 
+                        disabled={isOutOfStock}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                          isOutOfStock 
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                            : 'bg-[#1a1510] text-white hover:bg-[#c5a059]'
+                        }`}
+                      >
+                        {isOutOfStock ? <X size={16} /> : <Plus size={18} />}
+                      </button>
+                    </div>
+                    
+                    {/* 可选：在下方显示剩余库存提示（针对低库存） */}
+                    {!isOutOfStock && product.stock < 10 && (
+                      <p className="text-[9px] text-red-500 uppercase mt-2 tracking-widest animate-pulse">
+                        Only {product.stock} left in ritual
+                      </p>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -656,6 +714,17 @@ function App() {
   return (
     // 添加 basename 属性，确保路由能识别 GitHub Pages 的子路径
     <Router basename="/SkincareSystem">
+      <Toaster 
+        position="top-center" 
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#111',
+            color: '#c5a059',
+            border: '1px solid rgba(197, 160, 89, 0.3)',
+          }
+        }} 
+      />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<Register />} />
