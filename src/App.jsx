@@ -252,10 +252,10 @@ const LandingPage = () => {
             /* 状态 B: 用户未登录 (显示 Register 和 Shop Now) */
             <div className="flex items-center gap-6">
               <Link 
-                to="/register" 
+                to="/login" 
                 className="text-[10px] uppercase tracking-[0.2em] text-gray-400 hover:text-white transition-colors"
               >
-                Register
+                  Login
               </Link>
               
               <a href="#collection" className={`px-8 py-2 text-[10px] uppercase tracking-[0.2em] rounded-full transition-all duration-500 border ${
