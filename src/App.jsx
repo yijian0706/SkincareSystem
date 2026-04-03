@@ -238,7 +238,7 @@ const LandingPage = () => {
                     <button 
                       onClick={() => { 
                         localStorage.removeItem('user'); 
-                        window.location.reload(); 
+                        navigate('/'); 
                       }}
                       className="w-full flex items-center gap-3 px-5 py-3 text-[10px] uppercase tracking-widest text-gray-500 hover:text-red-400 transition-all"
                     >
