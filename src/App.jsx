@@ -286,6 +286,7 @@ const LandingPage = () => {
                 A breakthrough 30ml serum infused with 24K gold micro-particles and tri-peptide complex. 
                 Visibly lifts, firms, and illuminates in just 7 days.
               </p>
+              
               <div className="flex flex-wrap gap-4">
                 <button className="bg-[#c5a059] text-black px-8 py-4 rounded-full text-[11px] uppercase font-bold tracking-widest hover:bg-[#d4b475] transition">Discover Now</button>
                 <button className="border border-gray-700 px-8 py-4 rounded-full text-[11px] uppercase tracking-widest hover:border-white transition">Learn More</button>
