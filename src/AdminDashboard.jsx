@@ -5,13 +5,13 @@ import {
 } from 'lucide-react';
 
 const AdminDashboard = () => {
-  // --- 状态管理 ---
-  const [view, setView] = useState('orders'); // 当前视图: orders, users, inventory
+  // --- State Management ---
+  const [view, setView] = useState('orders'); 
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
   const [products, setProducts] = useState([]);
   
-  // 弹窗状态
+  // Modal/Editing States
   const [editingUser, setEditingUser] = useState(null);
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -19,7 +19,7 @@ const AdminDashboard = () => {
     name: '', price: '', category: '', image_url: '', stock: 0
   });
 
-  // --- 数据获取 ---
+  // --- Data Fetching ---
   const fetchData = async () => {
     try {
       const [orderRes, userRes, prodRes] = await Promise.all([
@@ -40,9 +40,8 @@ const AdminDashboard = () => {
     fetchData();
   }, []);
 
-  // --- 核心操作函数 ---
+  // --- Core Action Functions ---
   
-  // 1. 订单状态更新
   const updateOrderStatus = (id, status) => {
     fetch(`http://localhost:8082/api/admin/orders/${id}/status`, {
       method: 'PUT',
@@ -51,7 +50,6 @@ const AdminDashboard = () => {
     }).then(() => fetchData());
   };
 
-  // 2. 用户资料修改
   const handleUpdateUser = async (e) => {
     e.preventDefault();
     const res = await fetch(`http://localhost:8082/api/admin/users/${editingUser.id}`, {
@@ -65,7 +63,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // 3. 产品管理 (新增/删除/状态切换)
   const handleAddProduct = async (e) => {
     e.preventDefault();
     const res = await fetch('http://localhost:8082/api/admin/products', {
@@ -137,14 +134,11 @@ const AdminDashboard = () => {
 
       {/* --- MAIN CONTENT --- */}
       <div className="flex-1 ml-64 p-12">
-        {/* Header Stats */}
         <div className="flex justify-between items-center mb-12">
           <h1 className="text-4xl font-serif italic capitalize">{view} Management</h1>
-          <div className="flex gap-6">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 min-w-[160px]">
-              <p className="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Total Revenue</p>
-              <p className="text-2xl font-serif text-[#c5a059]">${orders.reduce((s, o) => s + parseFloat(o.total_amount), 0).toFixed(2)}</p>
-            </div>
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 min-w-[160px]">
+            <p className="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Total Revenue</p>
+            <p className="text-2xl font-serif text-[#c5a059]">${orders.reduce((s, o) => s + parseFloat(o.total_amount), 0).toFixed(2)}</p>
           </div>
         </div>
 
@@ -219,7 +213,16 @@ const AdminDashboard = () => {
         {/* --- VIEW: INVENTORY --- */}
         {view === 'inventory' && (
           <div className="animate-fadeIn">
-            {/* ... Add New Item 按钮 ... */}
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-serif italic text-gray-700">Ritual Collection</h3>
+              <button 
+                onClick={() => setIsAddProductOpen(true)}
+                className="flex items-center gap-2 bg-[#1a1510] text-white px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-[#c5a059] transition-all shadow-md"
+              >
+                <Plus size={14} /> Add New Ritual
+              </button>
+            </div>
+
             <div className="bg-white rounded-3xl shadow-sm overflow-hidden border border-gray-100">
               <table className="w-full text-left">
                 <thead className="bg-gray-50/50 text-[9px] uppercase tracking-[0.2em] text-gray-400">
@@ -240,7 +243,6 @@ const AdminDashboard = () => {
                         </button>
                       </td>
                       <td className="p-4 flex items-center gap-2">
-                        {/* 修改：增加编辑按钮 */}
                         <button onClick={() => setEditingProduct(prod)} className="text-[#c5a059] hover:text-black transition p-2">
                           <Edit3 size={16}/>
                         </button>
@@ -255,7 +257,56 @@ const AdminDashboard = () => {
             </div>
           </div>
         )}
-        {editingProduct && (
+      </div>
+
+      {/* --- MODAL: ADD PRODUCT --- */}
+      {isAddProductOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md bg-black/20">
+          <form onSubmit={handleAddProduct} className="bg-white w-full max-w-lg rounded-[2.5rem] p-12 shadow-2xl animate-fadeInUp relative">
+            <button type="button" onClick={() => setIsAddProductOpen(false)} className="absolute right-8 top-8 text-gray-400 hover:text-black transition"><X size={24}/></button>
+            <h2 className="text-3xl font-serif italic mb-8">Curate New Product</h2>
+            <div className="space-y-5">
+              <input 
+                className="w-full border-b border-gray-100 py-4 outline-none focus:border-[#c5a059] text-sm" 
+                placeholder="Product Name" 
+                value={newProduct.name}
+                onChange={e => setNewProduct({...newProduct, name: e.target.value})} 
+                required
+              />
+              <div className="flex gap-4">
+                <input 
+                  className="w-1/2 border-b border-gray-100 py-4 outline-none focus:border-[#c5a059] text-sm" 
+                  placeholder="Price ($)" type="number" step="0.01" 
+                  value={newProduct.price}
+                  onChange={e => setNewProduct({...newProduct, price: e.target.value})} required
+                />
+                <input 
+                  className="w-1/2 border-b border-gray-100 py-4 outline-none focus:border-[#c5a059] text-sm" 
+                  placeholder="Initial Stock" type="number" 
+                  value={newProduct.stock}
+                  onChange={e => setNewProduct({...newProduct, stock: e.target.value})} required
+                />
+              </div>
+              <input 
+                className="w-full border-b border-gray-100 py-4 outline-none focus:border-[#c5a059] text-sm" 
+                placeholder="Image URL" 
+                value={newProduct.image_url}
+                onChange={e => setNewProduct({...newProduct, image_url: e.target.value})} required
+              />
+              <input 
+                className="w-full border-b border-gray-100 py-4 outline-none focus:border-[#c5a059] text-sm" 
+                placeholder="Category (e.g. Cleanser)" 
+                value={newProduct.category}
+                onChange={e => setNewProduct({...newProduct, category: e.target.value})}
+              />
+            </div>
+            <button type="submit" className="w-full bg-[#1a1510] text-white py-5 rounded-full text-[10px] font-bold uppercase tracking-widest mt-10 hover:bg-[#c5a059] transition-all shadow-lg">Launch to Collection</button>
+          </form>
+        </div>
+      )}
+
+      {/* --- MODAL: EDIT PRODUCT --- */}
+      {editingProduct && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md bg-black/20">
           <form onSubmit={handleUpdateProduct} className="bg-white w-full max-w-lg rounded-[2.5rem] p-12 shadow-2xl animate-fadeInUp relative">
             <button type="button" onClick={() => setEditingProduct(null)} className="absolute right-8 top-8 text-gray-400 hover:text-black transition"><X size={24}/></button>
@@ -288,7 +339,6 @@ const AdminDashboard = () => {
           </form>
         </div>
       )}
-      </div>
 
       {/* --- MODAL: EDIT USER --- */}
       {editingUser && (
@@ -296,65 +346,16 @@ const AdminDashboard = () => {
           <form onSubmit={handleUpdateUser} className="bg-white w-full max-w-lg rounded-[2.5rem] p-10 shadow-2xl animate-fadeInUp relative overflow-y-auto max-h-[90vh]">
             <button type="button" onClick={() => setEditingUser(null)} className="absolute right-8 top-8 text-gray-400 hover:text-black transition"><X size={24}/></button>
             <h2 className="text-3xl font-serif italic mb-6">Modify Member Detail</h2>
-            
             <div className="space-y-4">
-              {/* Username */}
-              <div className="group">
-                <label className="text-[9px] uppercase tracking-[0.2em] text-gray-400 block mb-1 px-1">Username</label>
-                <input className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] transition-all text-sm font-medium" value={editingUser.username || ''} onChange={e => setEditingUser({...editingUser, username: e.target.value})} required/>
-              </div>
-
-              {/* Email */}
-              <div className="group">
-                <label className="text-[9px] uppercase tracking-[0.2em] text-gray-400 block mb-1 px-1">Email Address</label>
-                <input type="email" className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] transition-all text-sm font-medium" value={editingUser.email || ''} onChange={e => setEditingUser({...editingUser, email: e.target.value})} required/>
-              </div>
-
-              {/* Address */}
-              <div className="group">
-                <label className="text-[9px] uppercase tracking-[0.2em] text-gray-400 block mb-1 px-1">Shipping Address</label>
-                <textarea className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] transition-all text-sm font-medium resize-none h-16" value={editingUser.address || ''} onChange={e => setEditingUser({...editingUser, address: e.target.value})} />
-              </div>
-
-              {/* New Password (Optional) */}
-              <div className="group">
-                <label className="text-[9px] uppercase tracking-[0.2em] text-[#c5a059] block mb-1 px-1 font-bold">Reset Password (Leave blank to keep current)</label>
-                <input type="password" placeholder="Enter new password" className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] transition-all text-sm font-medium" onChange={e => setEditingUser({...editingUser, newPassword: e.target.value})}/>
-              </div>
-
-              {/* Role */}
-              <div className="group">
-                <label className="text-[9px] uppercase tracking-[0.2em] text-gray-400 block mb-1 px-1">Permission Role</label>
-                <select className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] transition-all text-sm bg-transparent" value={editingUser.role || 'customer'} onChange={e => setEditingUser({...editingUser, role: e.target.value})}>
-                  <option value="customer">Customer</option>
-                  <option value="admin">Administrator</option>
-                </select>
-              </div>
+              <input className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] text-sm font-medium" value={editingUser.username || ''} onChange={e => setEditingUser({...editingUser, username: e.target.value})} required/>
+              <input type="email" className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] text-sm font-medium" value={editingUser.email || ''} onChange={e => setEditingUser({...editingUser, email: e.target.value})} required/>
+              <textarea className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] text-sm font-medium resize-none h-16" value={editingUser.address || ''} onChange={e => setEditingUser({...editingUser, address: e.target.value})} />
+              <select className="w-full border-b border-gray-100 py-2 outline-none focus:border-[#c5a059] text-sm" value={editingUser.role || 'customer'} onChange={e => setEditingUser({...editingUser, role: e.target.value})}>
+                <option value="customer">Customer</option>
+                <option value="admin">Administrator</option>
+              </select>
             </div>
-
-            <button type="submit" className="w-full bg-[#1a1510] text-white py-4 rounded-full text-[10px] font-bold uppercase tracking-widest mt-8 hover:bg-[#c5a059] transition-all shadow-lg">
-              Update User Profile
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* --- MODAL: ADD PRODUCT --- */}
-      {isAddProductOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md bg-black/20">
-          <form onSubmit={handleAddProduct} className="bg-white w-full max-w-lg rounded-[2.5rem] p-12 shadow-2xl animate-fadeInUp relative">
-            <button type="button" onClick={() => setIsAddProductOpen(false)} className="absolute right-8 top-8 text-gray-400 hover:text-black transition"><X size={24}/></button>
-            <h2 className="text-3xl font-serif italic mb-8">Curate New Product</h2>
-            <div className="space-y-5">
-              <input className="w-full border-b border-gray-100 py-4 outline-none focus:border-[#c5a059] text-sm" placeholder="Product Name" onChange={e => setNewProduct({...newProduct, name: e.target.value})} required/>
-              <div className="flex gap-4">
-                <input className="w-1/2 border-b border-gray-100 py-4 outline-none focus:border-[#c5a059] text-sm" placeholder="Price ($)" type="number" step="0.01" onChange={e => setNewProduct({...newProduct, price: e.target.value})} required/>
-                <input className="w-1/2 border-b border-gray-100 py-4 outline-none focus:border-[#c5a059] text-sm" placeholder="Initial Stock" type="number" onChange={e => setNewProduct({...newProduct, stock: e.target.value})} required/>
-              </div>
-              <input className="w-full border-b border-gray-100 py-4 outline-none focus:border-[#c5a059] text-sm" placeholder="Image URL" onChange={e => setNewProduct({...newProduct, image_url: e.target.value})} required/>
-              <input className="w-full border-b border-gray-100 py-4 outline-none focus:border-[#c5a059] text-sm" placeholder="Category (e.g. Cleanser)" onChange={e => setNewProduct({...newProduct, category: e.target.value})}/>
-            </div>
-            <button type="submit" className="w-full bg-[#1a1510] text-white py-5 rounded-full text-[10px] font-bold uppercase tracking-widest mt-10 hover:bg-[#c5a059] transition-all shadow-lg">Launch to Collection</button>
+            <button type="submit" className="w-full bg-[#1a1510] text-white py-4 rounded-full text-[10px] font-bold uppercase tracking-widest mt-8 hover:bg-[#c5a059] transition-all shadow-lg">Update Profile</button>
           </form>
         </div>
       )}
